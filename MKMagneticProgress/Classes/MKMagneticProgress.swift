@@ -38,7 +38,7 @@ public enum Orientation: Int  {
 open class MKMagneticProgress: UIView {
     
     // MARK: - Variables
-    private let titleLabelWidth:CGFloat = 100
+    private let titleLabelWidth: CGFloat = 100
     
     private let percentLabel = UILabel(frame: .zero)
     @IBInspectable open var titleLabel = UILabel(frame: .zero)
@@ -74,17 +74,14 @@ open class MKMagneticProgress: UIView {
     /// Space value
     @IBInspectable open var spaceDegree: CGFloat = 45.0 {
         didSet {
-//            if spaceDegree < 45.0{
-//                spaceDegree = 45.0
-//            }
-//            
-//            if spaceDegree > 135.0{
-//                spaceDegree = 135.0
-//            }
+            if spaceDegree < 0.0 {
+                spaceDegree = 0.0
+            }
+            else if spaceDegree > 135.0 {
+                spaceDegree = 135.0
+            }
             
             layoutSubviews()
-
-            updateShapes()
         }
     }
     
@@ -95,16 +92,73 @@ open class MKMagneticProgress: UIView {
         }
     }
     
+    /// Value to set
+    @IBInspectable open var value: CGFloat = 0.0 {
+        didSet {
+            if value < minValue {
+                value = minValue
+            }
+            else if value > maxValue {
+                value = maxValue
+            }
+            
+            internalValue = value
+            
+            updateShapes()
+        }
+    }
+    
+    /// Current internal value.
+    private var internalValue: CGFloat = 0.0
+    
+    /// Minimum value
+    @IBInspectable open var minValue: CGFloat = 0.0 {
+        didSet {
+            if minValue > maxValue {
+                minValue = oldValue
+                return
+            }
+            else if minValue > value {
+                value = minValue
+                return
+            }
+            
+            updateShapes()
+        }
+    }
+    
+    /// Maximum value
+    @IBInspectable open var maxValue: CGFloat = 1.0 {
+        didSet {
+            if maxValue < minValue {
+                maxValue = oldValue
+                return
+            }
+            else if maxValue < value {
+                value = maxValue
+                return
+            }
+            
+            updateShapes()
+        }
+    }
+    
     // The progress percentage label(center label) format
     @IBInspectable open var percentLabelFormat: String = "%.f %%" {
         didSet {
-            percentLabel.text = String(format: percentLabelFormat, progress * 100)
+            percentLabel.text = String(format: percentLabelFormat, value)
         }
     }
     
     @IBInspectable open var percentColor: UIColor = UIColor(white: 0.9, alpha: 0.5) {
         didSet {
             percentLabel.textColor = percentColor
+        }
+    }
+    
+    @IBInspectable open var percentFont: UIFont = .monospacedDigitSystemFont(ofSize: UIFont.preferredFont(forTextStyle: .largeTitle).pointSize, weight: .regular) {
+        didSet {
+            percentLabel.font = percentFont
         }
     }
     
@@ -122,12 +176,9 @@ open class MKMagneticProgress: UIView {
         }
     }
     
-    
-    // progress text (progress bottom label)
-    @IBInspectable  open var font: UIFont = .systemFont(ofSize: 13) {
+    @IBInspectable open var titleFont: UIFont = UIFont.preferredFont(forTextStyle: .body) {
         didSet {
-            titleLabel.font = font
-            percentLabel.font = font
+            titleLabel.font = titleFont
         }
     }
     
@@ -143,16 +194,6 @@ open class MKMagneticProgress: UIView {
     open var lineCap: LineCap = .round {
         didSet {
             updateShapes()
-        }
-    }
-    
-    /// Returns the current progress.
-    @IBInspectable open private(set) var progress: CGFloat {
-        set {
-            progressShape?.strokeEnd = newValue
-        }
-        get {
-            return progressShape.strokeEnd
         }
     }
     
@@ -193,32 +234,39 @@ open class MKMagneticProgress: UIView {
         
         percentLabel.frame = self.bounds
         percentLabel.textAlignment = .center
-//        percentLabel.textColor = self.progressShapeColor
+        percentLabel.textColor = percentColor
+        percentLabel.font = percentFont
+        percentLabel.text = String(format: percentLabelFormat, value)
         self.addSubview(percentLabel)
-        percentLabel.text = String(format: "%.1f%%", progress * 100)
         
         
         titleLabel.frame = CGRect(x: (self.bounds.size.width-titleLabelWidth)/2, y: self.bounds.size.height-21, width: titleLabelWidth, height: 21)
-        
         titleLabel.textAlignment = .center
-//        titleLabel.textColor = self.progressShapeColor
+        titleLabel.textColor = titleColor
+        titleLabel.font = titleFont
         titleLabel.text = title
-        titleLabel.contentScaleFactor = 0.3
-        //        textLabel.adjustFontSizeToFit()
+//        titleLabel.contentScaleFactor = 0.3
         titleLabel.numberOfLines = 2
-        
-        //textLabel.adjustFontSizeToFit()
         titleLabel.adjustsFontSizeToFitWidth = true
         self.addSubview(titleLabel)
     }
     
     // MARK: - Progress Animation
     
-    public func setProgress(progress: CGFloat, animated: Bool = true) {
-        
-        if progress > 1.0 {
-            return
+    public func setValue(value: CGFloat, animated: Bool = true) {
+        if value < minValue {
+            internalValue = minValue
         }
+        else if value > maxValue {
+            internalValue = maxValue
+        }
+        else {
+            internalValue = value
+        }
+        
+        let progressValue = (internalValue - minValue) / maxValue
+        
+        percentLabel.text = String(format: percentLabelFormat, internalValue)
         
         var start = progressShape.strokeEnd
         if let presentationLayer = progressShape.presentation(){
@@ -227,13 +275,12 @@ open class MKMagneticProgress: UIView {
             }
         }
         
-        let duration = abs(Double(progress - start)) * completeDuration
-        percentLabel.text = String(format: percentLabelFormat, progress * 100)
-        progressShape.strokeEnd = progress
+        let duration = abs(Double(progressValue - start)) * completeDuration
+        progressShape.strokeEnd = progressValue
         
         if animated {
             progressAnimation.fromValue = start
-            progressAnimation.toValue   = progress
+            progressAnimation.toValue   = progressValue
             progressAnimation.duration  = duration
             progressShape.add(progressAnimation, forKey: progressAnimation.keyPath)
         }
@@ -260,7 +307,7 @@ open class MKMagneticProgress: UIView {
     }
     
     private func updateShapes() {
-        backgroundShape?.lineWidth  = lineWidth
+        backgroundShape?.lineWidth   = lineWidth
         backgroundShape?.strokeColor = backgroundShapeColor.cgColor
         backgroundShape?.lineCap     = CAShapeLayerLineCap(rawValue: lineCap.style())
         
@@ -273,24 +320,27 @@ open class MKMagneticProgress: UIView {
             titleLabel.isHidden = true
             self.progressShape.transform = CATransform3DMakeRotation( CGFloat.pi / 2, 0, 0, 1.0)
             self.backgroundShape.transform = CATransform3DMakeRotation(CGFloat.pi / 2, 0, 0, 1.0)
+            
         case .right:
             titleLabel.isHidden = true
             self.progressShape.transform = CATransform3DMakeRotation( CGFloat.pi * 1.5, 0, 0, 1.0)
             self.backgroundShape.transform = CATransform3DMakeRotation(CGFloat.pi * 1.5, 0, 0, 1.0)
+            
         case .bottom:
             titleLabel.isHidden = false
             UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: [] , animations: { [weak self] in
-                if let temp = self{
+                if let temp = self {
                     temp.titleLabel.frame = CGRect(x: (temp.bounds.size.width - temp.titleLabelWidth)/2, y: temp.bounds.size.height-50, width: temp.titleLabelWidth, height: 42)
                 }
 
             }, completion: nil)
             self.progressShape.transform = CATransform3DMakeRotation( CGFloat.pi * 2, 0, 0, 1.0)
             self.backgroundShape.transform = CATransform3DMakeRotation(CGFloat.pi * 2, 0, 0, 1.0)
+            
         case .top:
             titleLabel.isHidden = false
             UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: [] , animations: { [weak self] in
-                if let temp = self{
+                if let temp = self {
                     temp.titleLabel.frame = CGRect(x: (temp.bounds.size.width - temp.titleLabelWidth)/2, y: 0, width: temp.titleLabelWidth, height: 42)
                 }
                 
@@ -305,19 +355,20 @@ open class MKMagneticProgress: UIView {
     private func rectForShape() -> CGRect {
         return bounds.insetBy(dx: lineWidth / 2.0, dy: lineWidth / 2.0)
     }
+    
     private func pathForShape(rect: CGRect) -> UIBezierPath {
         let startAngle:CGFloat!
         let endAngle:CGFloat!
         
-        if clockwise{
+        if clockwise {
             startAngle = CGFloat(spaceDegree * .pi / 180.0) + (0.5 * .pi)
             endAngle = CGFloat((360.0 - spaceDegree) * (.pi / 180.0)) + (0.5 * .pi)
-        }else{
+        }
+        else {
             startAngle = CGFloat((360.0 - spaceDegree) * (.pi / 180.0)) + (0.5 * .pi)
             endAngle = CGFloat(spaceDegree * .pi / 180.0) + (0.5 * .pi)
         }
-        let path = UIBezierPath(arcCenter: CGPoint(x: rect.midX, y: rect.midY), radius: rect.size.width / 2.0, startAngle: startAngle, endAngle: endAngle
-            , clockwise: clockwise)
+        let path = UIBezierPath(arcCenter: CGPoint(x: rect.midX, y: rect.midY), radius: rect.size.width / 2.0, startAngle: startAngle, endAngle: endAngle, clockwise: clockwise)
     
         return path
     }
