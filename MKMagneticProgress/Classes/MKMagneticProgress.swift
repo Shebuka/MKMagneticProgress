@@ -38,7 +38,8 @@ public enum Orientation: Int  {
 open class MKMagneticProgress: UIView {
     
     // MARK: - Variables
-    private let titleLabelWidth: CGFloat = 100
+    private var titleTopConstraint: NSLayoutConstraint?
+    private var titleBottomConstraint: NSLayoutConstraint?
     
     private let percentLabel = UILabel(frame: .zero)
     @IBInspectable open var titleLabel = UILabel(frame: .zero)
@@ -218,6 +219,7 @@ open class MKMagneticProgress: UIView {
     }
     
     private func setup() {
+        self.bounds.size = CGSize(width: self.frame.width, height: self.frame.height)
         
         backgroundShape = CAShapeLayer()
         backgroundShape.fillColor = nil
@@ -232,23 +234,30 @@ open class MKMagneticProgress: UIView {
         
         progressAnimation = CABasicAnimation(keyPath: "strokeEnd")
         
-        percentLabel.frame = self.bounds
         percentLabel.textAlignment = .center
         percentLabel.textColor = percentColor
         percentLabel.font = percentFont
         percentLabel.text = String(format: percentLabelFormat, value)
+        percentLabel.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(percentLabel)
         
+        percentLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+        percentLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
         
-        titleLabel.frame = CGRect(x: (self.bounds.size.width-titleLabelWidth)/2, y: self.bounds.size.height-21, width: titleLabelWidth, height: 21)
         titleLabel.textAlignment = .center
         titleLabel.textColor = titleColor
         titleLabel.font = titleFont
         titleLabel.text = title
-//        titleLabel.contentScaleFactor = 0.3
         titleLabel.numberOfLines = 2
-        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(titleLabel)
+        
+        titleTopConstraint = titleLabel.topAnchor.constraint(equalTo: self.topAnchor)
+        titleTopConstraint?.isActive = false
+        titleBottomConstraint = titleLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+        titleBottomConstraint?.isActive = true
+        titleLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        titleLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
     }
     
     // MARK: - Progress Animation
@@ -299,53 +308,60 @@ open class MKMagneticProgress: UIView {
         backgroundShape.path = pathForShape(rect: rect).cgPath
         progressShape.path   = pathForShape(rect: rect).cgPath
         
-        self.titleLabel.frame = CGRect(x: (self.bounds.size.width - titleLabelWidth)/2, y: self.bounds.size.height-50, width: titleLabelWidth, height: 42)
-        
         updateShapes()
-        
-        percentLabel.frame = self.bounds
+    }
+    
+    open override var intrinsicContentSize: CGSize {
+        return CGSize.init(width: 128, height: 128)
     }
     
     private func updateShapes() {
-        backgroundShape?.lineWidth   = lineWidth
+        percentLabel.text = String(format: percentLabelFormat, internalValue)
+        
         backgroundShape?.strokeColor = backgroundShapeColor.cgColor
+        backgroundShape?.lineWidth   = lineWidth
         backgroundShape?.lineCap     = CAShapeLayerLineCap(rawValue: lineCap.style())
         
         progressShape?.strokeColor = progressShapeColor.cgColor
         progressShape?.lineWidth   = lineWidth - inset
         progressShape?.lineCap     = CAShapeLayerLineCap(rawValue: lineCap.style())
         
+        let progressValue = (internalValue - minValue) / maxValue
+        progressShape?.strokeEnd = progressValue
+        
         switch orientation {
         case .left:
             titleLabel.isHidden = true
-            self.progressShape.transform = CATransform3DMakeRotation( CGFloat.pi / 2, 0, 0, 1.0)
+            self.progressShape.transform   = CATransform3DMakeRotation(CGFloat.pi / 2, 0, 0, 1.0)
             self.backgroundShape.transform = CATransform3DMakeRotation(CGFloat.pi / 2, 0, 0, 1.0)
             
         case .right:
             titleLabel.isHidden = true
-            self.progressShape.transform = CATransform3DMakeRotation( CGFloat.pi * 1.5, 0, 0, 1.0)
+            self.progressShape.transform   = CATransform3DMakeRotation(CGFloat.pi * 1.5, 0, 0, 1.0)
             self.backgroundShape.transform = CATransform3DMakeRotation(CGFloat.pi * 1.5, 0, 0, 1.0)
             
         case .bottom:
             titleLabel.isHidden = false
             UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: [] , animations: { [weak self] in
-                if let temp = self {
-                    temp.titleLabel.frame = CGRect(x: (temp.bounds.size.width - temp.titleLabelWidth)/2, y: temp.bounds.size.height-50, width: temp.titleLabelWidth, height: 42)
+                if let weakSelf = self {
+                    weakSelf.titleTopConstraint?.isActive = false
+                    weakSelf.titleBottomConstraint?.isActive = true
+                    weakSelf.layoutIfNeeded()
                 }
-
-            }, completion: nil)
-            self.progressShape.transform = CATransform3DMakeRotation( CGFloat.pi * 2, 0, 0, 1.0)
+            } )
+            self.progressShape.transform   = CATransform3DMakeRotation(CGFloat.pi * 2, 0, 0, 1.0)
             self.backgroundShape.transform = CATransform3DMakeRotation(CGFloat.pi * 2, 0, 0, 1.0)
             
         case .top:
             titleLabel.isHidden = false
             UIView.animate(withDuration: 0.3, delay: 0.0, usingSpringWithDamping: 0.9, initialSpringVelocity: 0.0, options: [] , animations: { [weak self] in
-                if let temp = self {
-                    temp.titleLabel.frame = CGRect(x: (temp.bounds.size.width - temp.titleLabelWidth)/2, y: 0, width: temp.titleLabelWidth, height: 42)
+                if let weakSelf = self {
+                    weakSelf.titleTopConstraint?.isActive = true
+                    weakSelf.titleBottomConstraint?.isActive = false
+                    weakSelf.layoutIfNeeded()
                 }
-                
-                }, completion: nil)
-            self.progressShape.transform = CATransform3DMakeRotation( CGFloat.pi, 0, 0, 1.0)
+            } )
+            self.progressShape.transform   = CATransform3DMakeRotation(CGFloat.pi, 0, 0, 1.0)
             self.backgroundShape.transform = CATransform3DMakeRotation(CGFloat.pi, 0, 0, 1.0)
         }
     }
