@@ -1,36 +1,34 @@
 #
-# Be sure to run `pod lib lint MKMagneticProgress.podspec' to ensure this is a
-# valid spec before submitting.
+#  Be sure to run `pod spec lint MKMagneticProgress.podspec' to ensure this is a
+#  valid spec and to remove all comments including this before submitting the spec.
 #
-# Any lines starting with a # are optional, but their use is encouraged
-# To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html
+#  To learn more about Podspec attributes see https://guides.cocoapods.org/syntax/podspec.html
+#  To see working Podspecs in the CocoaPods repo see https://github.com/CocoaPods/Specs/
 #
 
-Pod::Spec.new do |s|
-  s.name             = 'MKMagneticProgress'
-  s.version          = '1.4'
-  s.summary          = 'A circular progress bar for iOS written in Swift.'
-
-# This description is used to generate tags and improve search results.
-#   * Think: What does it do? Why did you write it? What is the focus?
-#   * Try to keep it short, snappy and to the point.
-#   * Write the description between the DESC delimiters below.
-#   * Finally, don't worry about the indent, CocoaPods strips it!
-
-  s.description      = <<-DESC
-MKMagneticProgress is a circular progress bar for iOS written in Swift, easy to customizd via Interface builder or by code .
-                       DESC
-
-  s.homepage         = 'https://github.com/malkouz/MKMagneticProgress'
-  # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
-  s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'Moayad Al kouz' => 'moayad_kouz9@hotmail.com' }
-  s.source           = { :git => 'https://github.com/malkouz/MKMagneticProgress.git', :tag => s.version.to_s }
-  s.social_media_url = 'https://twitter.com/malkouz'
-
-  s.ios.deployment_target = '8.0'
-
-  s.source_files = 'MKMagneticProgress/Classes/**/*'
+Pod::Spec.new do |spec|
   
-
+  spec.name         = "MKMagneticProgress"
+  spec.version      = "1.4"
+  spec.summary      = "A circular progress bar for iOS written in Swift"
+  
+  spec.description  = <<-DESC
+MKMagneticProgress is a circular progress bar for iOS written in Swift, easy to customizd via Interface builder or by code
+                   DESC
+  
+  spec.homepage     = "https://github.com/Shebuka/MKMagneticProgress"
+  spec.screenshots  = "https://github.com/Shebuka/MKMagneticProgress/raw/master/demo.gif", "https://github.com/Shebuka/MKMagneticProgress/raw/master/IB.gif"
+  spec.license      = { :type => "MIT", :file => "LICENSE" }
+  
+  spec.authors          = { "Anton Shebukov" => "email@address.com", "Moayad Al kouz" => "moayad_kouz9@hotmail.com" }
+  spec.social_media_url = "https://twitter.com/Shebuka"
+  
+  spec.platform     = :ios, "11.0"
+  spec.swift_versions   = ['5.0']
+  spec.source       = { :git => "https://github.com/Shebuka/MKMagneticProgress.git", :tag => "#{spec.version}" }
+  
+  spec.source_files = "MKMagneticProgress/Classes/**/*.{swift}"
+  
+  spec.requires_arc = true
+  
 end

@@ -30,7 +30,7 @@
 target 'Example' do
 # IMPORTANT: Make sure use_frameworks! is included at the top of the file
 use_frameworks!
-platform :ios, '8.0'
+platform :ios, '11.0'
 pod 'MKMagneticProgress'
 end
 ```
