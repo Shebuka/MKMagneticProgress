@@ -1,12 +1,11 @@
 use_frameworks!
-platform :ios, '8.0'
+platform :ios, '11.0'
 
 target 'Example' do
   pod 'MKMagneticProgress', :path => '../'
-  pod 'MKColorPicker'
+  pod 'MKColorPicker', :git => 'https://github.com/malkouz/MKColorPicker.git', :branch => 'master'
   target 'Example_Tests' do
     inherit! :search_paths
-
     
   end
 end
