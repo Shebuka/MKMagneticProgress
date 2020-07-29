@@ -9,7 +9,7 @@
 Pod::Spec.new do |spec|
   
   spec.name         = "MKMagneticProgress"
-  spec.version      = "1.4"
+  spec.version      = "1.5"
   spec.summary      = "A circular progress bar for iOS written in Swift"
   
   spec.description  = <<-DESC
