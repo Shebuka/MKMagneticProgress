@@ -33,7 +33,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        magProgress.setProgress(progress: CGFloat(progressValueSlider.value), animated: false)
+        magProgress.setValue(value: CGFloat(progressValueSlider.value), animated: false)
         
         
         progressColorPicker.selectedColor = { [weak self] color in
@@ -78,7 +78,7 @@ class ViewController: UIViewController, UITextFieldDelegate {
     
     
     @IBAction func progressValueChangedValue(sender: UISlider){
-        magProgress.setProgress(progress: CGFloat(sender.value), animated: false)
+        magProgress.setValue(value: CGFloat(sender.value), animated: false)
     }
     
     @IBAction func lineWidthChangedValue(sender: UISlider){
